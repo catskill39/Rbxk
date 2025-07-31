@@ -1,6 +1,6 @@
 --[[
-   📦 SYSTEM UI с автоматическим редиректом
-   Автор: @qu2ex
+   📦 FOGGY SYSTEM UI с ключ-системой
+   Автор: ты 😎
 --]]
 
 local placeId = game.PlaceId
@@ -27,16 +27,15 @@ local allowedPlaces = {
 }
 
 local Players     = game:GetService("Players")
-local GuiService = game:GetService("GuiService")
 local player      = Players.LocalPlayer
 local gui         = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-gui.Name         = "SystemUI"
+gui.Name         = "FoggySystemUI"
 gui.ResetOnSpawn = false
 
 -- Основной фрейм
 local frame = Instance.new("Frame", gui)
-frame.Size               = UDim2.new(0, 400, 0, 270)
-frame.Position           = UDim2.new(0.5, -200, 0.5, -135)
+frame.Size               = UDim2.new(0, 400, 0, 300)
+frame.Position           = UDim2.new(0.5, -200, 0.5, -150)
 frame.BackgroundColor3   = Color3.fromRGB(20, 20, 20)
 frame.BorderSizePixel    = 0
 frame.BackgroundTransparency = 0.1
@@ -46,9 +45,9 @@ Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 12)
 local title = Instance.new("TextLabel", frame)
 title.Size               = UDim2.new(1, -40, 0, 40)
 title.Position           = UDim2.new(0, 10, 0, 10)
-title.Text               = "🔥HUB"
+title.Text               = "🔑 Ввод ключа — FOGGY HUB"
 title.Font               = Enum.Font.GothamBold
-title.TextSize           = 24
+title.TextSize           = 20
 title.TextColor3         = Color3.new(1,1,1)
 title.BackgroundTransparency = 1
 title.TextXAlignment     = Enum.TextXAlignment.Left
@@ -67,7 +66,7 @@ end)
 
 -- Описание
 local message = Instance.new("TextLabel", frame)
-message.Size               = UDim2.new(1, -20, 0, 100)
+message.Size               = UDim2.new(1, -20, 0, 80)
 message.Position           = UDim2.new(0, 10, 0, 60)
 message.Font               = Enum.Font.Gotham
 message.TextWrapped        = true
@@ -76,63 +75,66 @@ message.TextColor3         = Color3.new(1,1,1)
 message.BackgroundTransparency = 1
 message.TextXAlignment     = Enum.TextXAlignment.Left
 message.TextYAlignment     = Enum.TextYAlignment.Top
+message.Text               = "Введите ключ доступа, чтобы продолжить. Для начала ключ — Free"
 
--- Кнопка действия
+-- Поле ввода ключа
+local textbox = Instance.new("TextBox", frame)
+textbox.Size               = UDim2.new(0.8, 0, 0, 40)
+textbox.Position           = UDim2.new(0.1, 0, 0, 150)
+textbox.PlaceholderText    = "Ваш ключ"
+textbox.Font               = Enum.Font.Gotham
+textbox.TextSize           = 18
+textbox.TextColor3         = Color3.new(0,0,0)
+textbox.BackgroundColor3   = Color3.fromRGB(235,235,235)
+textbox.ClearTextOnFocus   = false
+Instance.new("UICorner", textbox).CornerRadius = UDim.new(0, 8)
+
+-- Кнопка проверки
 local button = Instance.new("TextButton", frame)
 button.Size               = UDim2.new(0.6, 0, 0, 40)
 button.Position           = UDim2.new(0.2, 0, 1, -50)
+button.Text               = "🔓 Применить ключ"
 button.Font               = Enum.Font.GothamBold
 button.TextSize           = 18
 button.TextColor3         = Color3.new(1,1,1)
 button.BackgroundColor3   = Color3.fromRGB(0, 170, 127)
 Instance.new("UICorner", button).CornerRadius = UDim.new(0, 8)
 
--- Вспомогательная функция для списка игр
+-- Функция «расшифровки» ключа (просто реверс для примера)
+local encryptedKey = "eerF"  -- "Free" наоборот
+local function decryptKey(enc)
+    return string.reverse(enc)
+end
+local validKey = decryptKey(encryptedKey)
+
+-- Список доступных игр
 local function getGameList()
     local str = ""
     for id, name in pairs(allowedPlaces) do
-        str = str .. ("🔹 %s (%d)\n"):format(name, id)
+        str = str .. ("%s (%d)\n"):format(name, id)
     end
     return str
 end
 
--- Состояние кнопки
-local hasOpened = false
-
--- Показ при неподдерживаемом плейсе
-local function showNotSupported()
-    message.Text = "😢 Этот плейс не поддерживается.\n\n📌 Поддерживаемые игры:\n" .. getGameList()
-    button.Visible = false
-end
-
--- Показ приглашения в Telegram
-local function showTelegramPrompt()
-    message.Text = "✉️ Подпишись на наш Telegram-канал @hard_fyl\n\nНажми кнопку, чтобы перейти. После подписки — нажми “✅ Я подписался”."
-    button.Text = "📎 Перейти в Telegram"
-    hasOpened = false
-end
-
--- Логика клика по кнопке
+-- Логика кнопки
 button.MouseButton1Click:Connect(function()
-    if not hasOpened then
-        -- 1-й клик: редирект в Telegram
-        GuiService:OpenBrowserWindow("https://t.me/hard_fyl")
-        message.Text = "🔄 Открылось окно браузера. Подпишись и вернись, затем нажми “✅ Я подписался”."
-        button.Text = "✅ Я подписался"
-        hasOpened = true
-    else
-        -- 2-й клик: запускаем чит
-        message.Text = "✅ Отлично! Загружаем скрипт..."
-        wait(1)
+    local input = textbox.Text or ""
+    if input == validKey then
+        message.Text = "✅ Ключ верен! Загружаем скрипт..."
+        wait(0.8)
         gui:Destroy()
+        -- Загрузка чита
         local url = "https://raw.githubusercontent.com/FOGOTY/scripts/" .. placeId .. "/main.lua"
         loadstring(game:HttpGet(url))()
+    else
+        message.Text = "❌ Неверный ключ! Попробуй ещё раз."
+        -- Можно добавить анимацию ошибки тут
     end
 end)
 
--- Запуск
-if allowedPlaces[placeId] then
-    showTelegramPrompt()
-else
-    showNotSupported()
+-- Старт: проверяем, поддерживается ли плейс
+if not allowedPlaces[placeId] then
+    message.Text = "😢 Этот плейс не поддерживается.\n\n📌 Доступные игры:\n" .. getGameList()
+    textbox.Visible = false
+    button.Visible = false
 end
